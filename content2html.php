@@ -3,7 +3,7 @@
  * Plugin Name: Content2HTML
  * Plugin URI: https://ub-internetberatung.de
  * Description: Use WordPress as a headless CMS without building a WordPress theme. Upload your HTML template, define your own injection points, and publish the result as a static website.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: elbutschito
@@ -26,7 +26,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WPSTATIC_DEPLOY_VERSION', '1.0.0');
+define('WPSTATIC_DEPLOY_VERSION', '1.1.0');
 define('WPSTATIC_DEPLOY_DIR', plugin_dir_path(__FILE__));
 define('WPSTATIC_DEPLOY_URL', plugin_dir_url(__FILE__));
 
