@@ -34,7 +34,7 @@
 
 @media screen and (max-width: 782px) {
     #wpstatic-unsaved-notice {
-        top: 46px; /* WP-Admin-Bar ist auf Mobile/Tablet höher */
+        top: 46px; /* the WP admin bar is taller on mobile/tablet */
     }
 }
 
@@ -49,4 +49,115 @@
 
 .wpstatic-tab-panel.wpstatic-tab-active {
     display: block;
+}
+
+.wpstatic-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wpstatic-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.wpstatic-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.wpstatic-modal-header h2 {
+    margin: 0;
+}
+
+.wpstatic-modal-header button {
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.wpstatic-modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+}
+
+.wpstatic-field-browser-results {
+    margin-top: 10px;
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #dcdcde;
+}
+
+.wpstatic-field-row {
+    display: flex;
+    gap: 10px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f1;
+    cursor: pointer;
+}
+
+.wpstatic-field-row:hover {
+    background: #f0f6fc;
+}
+
+.wpstatic-field-row-disabled:hover {
+    background: #fff;
+    cursor: help;
+}
+
+.wpstatic-field-row:last-child {
+    border-bottom: none;
+}
+
+.wpstatic-field-row code {
+    flex: 0 0 auto;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wpstatic-field-row .wpstatic-field-preview {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #646970;
+}
+
+.wpstatic-field-row .wpstatic-field-array-badge {
+    flex: 0 0 auto;
+    font-size: 11px;
+    background: #f0e6ff;
+    color: #5c2d91;
+    padding: 1px 6px;
+    border-radius: 3px;
+    align-self: center;
+}
+
+.wpstatic-field-row .wpstatic-field-linked-badge {
+    flex: 0 0 auto;
+    font-size: 11px;
+    background: #e5f5e0;
+    color: #1e6b1e;
+    padding: 1px 6px;
+    border-radius: 3px;
+    align-self: center;
 }

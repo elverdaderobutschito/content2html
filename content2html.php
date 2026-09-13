@@ -85,6 +85,7 @@ require_once WPSTATIC_DEPLOY_DIR . 'includes/interface-content2html-uploader.php
 require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-sftp-uploader.php';
 require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-netlify-uploader.php';
 require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-batch-controller.php';
+require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-field-browser.php';
 require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-ajax.php';
 require_once WPSTATIC_DEPLOY_DIR . 'includes/class-content2html-metabox.php';
 

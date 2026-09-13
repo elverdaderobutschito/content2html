@@ -173,6 +173,16 @@ class Content2HTML_Settings {
                 'deploymentComplete' => __('Deployment complete.', 'content2html'),
                 'testing' => __('Testing …', 'content2html'),
                 'requestToWordPressFailed' => __('Request to WordPress failed.', 'content2html'),
+                'fieldBrowserLoadingPosts' => __('Loading...', 'content2html'),
+                'fieldBrowserSelectPost' => __('Select a post/page...', 'content2html'),
+                'fieldBrowserNoPosts' => __('No published posts/pages found for the enabled post types.', 'content2html'),
+                'fieldBrowserSelectPrompt' => __('Select a post/page above to load its available fields.', 'content2html'),
+                'fieldBrowserLoadingFields' => __('Loading fields...', 'content2html'),
+                'fieldBrowserNoMatch' => __('No fields match your filter.', 'content2html'),
+                'fieldBrowserArrayBadge' => __('array', 'content2html'),
+                'fieldBrowserLinkedBadge' => __('resolved link', 'content2html'),
+                'fieldBrowserInserted' => __('Inserted.', 'content2html'),
+                'fieldBrowserNotInsertable' => __('This is a plain list of IDs - used directly, it would just print the word "Array". Use the sourcePath|endpoint|dataPoint syntax instead (see the tutorial).', 'content2html'),
             ],
         ]);
     }
@@ -747,7 +757,12 @@ class Content2HTML_Settings {
                     </tr>
                     <tr>
                         <th><label for="data_injection_rules"><?php esc_html_e('Data injection rules', 'content2html'); ?></label></th>
-                        <td><textarea id="data_injection_rules" name="data_injection_rules" rows="6" class="large-text code" placeholder="title->rendered => ###title###"><?php echo esc_textarea($settings['data_injection_rules']); ?></textarea></td>
+                        <td>
+                            <textarea id="data_injection_rules" name="data_injection_rules" rows="6" class="large-text code" placeholder="title->rendered => ###title###"><?php echo esc_textarea($settings['data_injection_rules']); ?></textarea>
+                            <p>
+                                <button type="button" class="button" id="wpstatic-field-browser-open-btn"><?php esc_html_e('Browse available fields...', 'content2html'); ?></button>
+                            </p>
+                        </td>
                     </tr>
                     <tr>
                         <th><label for="change_url_rules"><?php esc_html_e('Change-URL rules', 'content2html'); ?></label></th>
@@ -758,6 +773,33 @@ class Content2HTML_Settings {
                         <td><textarea id="tidy_html_rules" name="tidy_html_rules" rows="4" class="large-text code"><?php echo esc_textarea($settings['tidy_html_rules']); ?></textarea></td>
                     </tr>
                 </table>
+                </div>
+
+                <div id="wpstatic-field-browser-modal" class="wpstatic-modal-overlay" style="display:none;">
+                    <div class="wpstatic-modal">
+                        <div class="wpstatic-modal-header">
+                            <h2><?php esc_html_e('Available fields', 'content2html'); ?></h2>
+                            <button type="button" class="button-link" id="wpstatic-field-browser-close-btn" aria-label="<?php esc_attr_e('Close', 'content2html'); ?>">&times;</button>
+                        </div>
+                        <div class="wpstatic-modal-body">
+                            <p>
+                                <label for="wpstatic-field-browser-post-select"><?php esc_html_e('Example post/page to inspect:', 'content2html'); ?></label><br>
+                                <select id="wpstatic-field-browser-post-select" style="width:100%;">
+                                    <option value=""><?php esc_html_e('Loading...', 'content2html'); ?></option>
+                                </select>
+                            </p>
+                            <p>
+                                <input type="text" id="wpstatic-field-browser-search" class="regular-text" style="width:100%;" placeholder="<?php esc_attr_e('Filter fields...', 'content2html'); ?>">
+                            </p>
+                            <p>
+                                <label><input type="checkbox" id="wpstatic-field-browser-show-empty"> <?php esc_html_e('Also show empty fields', 'content2html'); ?></label>
+                            </p>
+                            <p class="description"><?php esc_html_e('Click a row to insert it into the Data Injection Rules field as a new line. Fields marked "array" are lists of IDs (e.g. custom taxonomy terms) - for the built-in author/featured image/categories/tags, the resolved, readable version is already listed below (marked "resolved link"); for other cases, use the sourcePath|endpoint|dataPoint syntax instead (see the tutorial).', 'content2html'); ?></p>
+                            <div id="wpstatic-field-browser-results" class="wpstatic-field-browser-results">
+                                <p class="description"><?php esc_html_e('Select a post/page above to load its available fields.', 'content2html'); ?></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="wpstatic-tab-panel" data-tab-panel="formulare">

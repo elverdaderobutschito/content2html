@@ -345,4 +345,163 @@ jQuery(function ($) {
             $assetsBtn.prop('disabled', false).text(i18n.deployAssetsOnly);
         });
     });
+
+    // --- Field browser (Content tab) --------------------------------------
+    var $fbModal = $('#wpstatic-field-browser-modal');
+    var $fbPostSelect = $('#wpstatic-field-browser-post-select');
+    var $fbSearch = $('#wpstatic-field-browser-search');
+    var $fbShowEmpty = $('#wpstatic-field-browser-show-empty');
+    var $fbResults = $('#wpstatic-field-browser-results');
+    var fbFields = []; // full, unfiltered list from the last successful fetch
+
+    function fbRenderFields(fields) {
+        if (fields.length === 0) {
+            $fbResults.html('<p class="description">' + i18n.fieldBrowserNoMatch + '</p>');
+            return;
+        }
+
+        var html = '';
+        fields.forEach(function (field) {
+            var badge = field.is_array
+                ? '<span class="wpstatic-field-array-badge">' + i18n.fieldBrowserArrayBadge + '</span>'
+                : (field.is_linked ? '<span class="wpstatic-field-linked-badge">' + i18n.fieldBrowserLinkedBadge + '</span>' : '');
+            // A plain (unresolved) array field would silently produce the
+            // literal text "Array" if used directly in an injection rule
+            // (PHP's array-to-string conversion) - not clickable-to-insert,
+            // to prevent building a rule that looks fine but is broken.
+            var notInsertable = field.is_array && !field.is_linked;
+            var rowClass = 'wpstatic-field-row' + (notInsertable ? ' wpstatic-field-row-disabled' : '');
+            html += '<div class="' + rowClass + '" data-path="' + $('<div>').text(field.path).html() + '" data-not-insertable="' + (notInsertable ? '1' : '') + '">'
+                + '<code>' + $('<div>').text(field.path).html() + '</code>'
+                + '<span class="wpstatic-field-preview">' + $('<div>').text(field.preview).html() + '</span>'
+                + badge
+                + '</div>';
+        });
+
+        $fbResults.html(html);
+    }
+
+    function fbApplyFilter() {
+        var term = $fbSearch.val().toLowerCase();
+        var showEmpty = $fbShowEmpty.is(':checked');
+
+        var visible = fbFields.filter(function (field) {
+            return showEmpty || !field.is_empty;
+        });
+
+        if (term !== '') {
+            visible = visible.filter(function (field) {
+                return field.path.toLowerCase().indexOf(term) !== -1
+                    || field.preview.toLowerCase().indexOf(term) !== -1;
+            });
+        }
+
+        fbRenderFields(visible);
+    }
+
+    function fbLoadPosts() {
+        $fbPostSelect.prop('disabled', true).html('<option value="">' + i18n.fieldBrowserLoadingPosts + '</option>');
+
+        ajaxPost('wpstatic_field_browser_posts', {}).done(function (response) {
+            if (!response.success) {
+                $fbPostSelect.html('<option value="">' + ((response.data && response.data.message) || i18n.unknownError) + '</option>');
+                return;
+            }
+
+            var posts = (response.data && response.data.posts) || [];
+
+            if (posts.length === 0) {
+                $fbPostSelect.html('<option value="">' + i18n.fieldBrowserNoPosts + '</option>');
+                return;
+            }
+
+            var options = '<option value="">' + i18n.fieldBrowserSelectPost + '</option>';
+            posts.forEach(function (post) {
+                options += '<option value="' + post.id + '">' + $('<div>').text(post.title).html() + ' (' + post.post_type + ')</option>';
+            });
+
+            $fbPostSelect.prop('disabled', false).html(options);
+        }).fail(function () {
+            $fbPostSelect.html('<option value="">' + i18n.errorRequestFailed + '</option>');
+        });
+    }
+
+    function fbLoadFields(postId) {
+        fbFields = [];
+        $fbResults.html('<p class="description">' + i18n.fieldBrowserLoadingFields + '</p>');
+
+        ajaxPost('wpstatic_field_browser_fields', {post_id: postId}).done(function (response) {
+            if (!response.success) {
+                $fbResults.html('<p style="color:#b32d2e;">' + ((response.data && response.data.message) || i18n.unknownError) + '</p>');
+                return;
+            }
+
+            fbFields = (response.data && response.data.fields) || [];
+            fbApplyFilter();
+        }).fail(function () {
+            $fbResults.html('<p style="color:#b32d2e;">' + i18n.errorRequestFailed + '</p>');
+        });
+    }
+
+    $('#wpstatic-field-browser-open-btn').on('click', function () {
+        $fbModal.show();
+        $fbSearch.val('');
+        $fbShowEmpty.prop('checked', false);
+        fbFields = [];
+        $fbResults.html('<p class="description">' + i18n.fieldBrowserSelectPrompt + '</p>');
+        fbLoadPosts();
+    });
+
+    $('#wpstatic-field-browser-close-btn').on('click', function () {
+        $fbModal.hide();
+    });
+
+    $fbModal.on('click', function (event) {
+        if (event.target === this) {
+            $fbModal.hide();
+        }
+    });
+
+    $fbPostSelect.on('change', function () {
+        var postId = $(this).val();
+        $fbSearch.val('');
+
+        if (postId) {
+            fbLoadFields(postId);
+        } else {
+            fbFields = [];
+            $fbResults.html('<p class="description">' + i18n.fieldBrowserSelectPrompt + '</p>');
+        }
+    });
+
+    $fbSearch.on('input', fbApplyFilter);
+    $fbShowEmpty.on('change', fbApplyFilter);
+
+    $fbResults.on('click', '.wpstatic-field-row', function () {
+        var $row = $(this);
+
+        if ($row.data('not-insertable')) {
+            var originalWarningHtml = $row.html();
+            $row.append(' <em>' + i18n.fieldBrowserNotInsertable + '</em>');
+            setTimeout(function () {
+                $row.html(originalWarningHtml);
+            }, 4000);
+            return;
+        }
+
+        var path = $row.data('path');
+        var marker = '###' + String(path).replace(/->/g, '_').replace(/[^a-zA-Z0-9_]/g, '_') + '###';
+        var $textarea = $('#data_injection_rules');
+        var newLine = path + ' => ' + marker;
+        var current = $textarea.val();
+
+        $textarea.val(current === '' ? newLine : current.replace(/\n*$/, '') + '\n' + newLine);
+        $textarea.trigger('change'); // so the "unsaved changes" tracking picks this up
+
+        var originalHtml = $row.html();
+        $row.append(' <em>(' + i18n.fieldBrowserInserted + ')</em>');
+        setTimeout(function () {
+            $row.html(originalHtml);
+        }, 1200);
+    });
 });
