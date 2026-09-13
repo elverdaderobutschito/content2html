@@ -788,6 +788,11 @@ class Content2HTML_Settings {
                                     <option value=""><?php esc_html_e('Loading...', 'content2html'); ?></option>
                                 </select>
                             </p>
+                            <div id="wpstatic-field-browser-common" class="wpstatic-field-browser-common" style="display:none;">
+                                <h4 style="margin-bottom:4px;"><?php esc_html_e('Common fields', 'content2html'); ?></h4>
+                                <div id="wpstatic-field-browser-common-results"></div>
+                            </div>
+                            <p style="margin-top:16px;"><strong><?php esc_html_e('All fields', 'content2html'); ?></strong></p>
                             <p>
                                 <input type="text" id="wpstatic-field-browser-search" class="regular-text" style="width:100%;" placeholder="<?php esc_attr_e('Filter fields...', 'content2html'); ?>">
                             </p>

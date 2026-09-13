@@ -352,7 +352,43 @@ jQuery(function ($) {
     var $fbSearch = $('#wpstatic-field-browser-search');
     var $fbShowEmpty = $('#wpstatic-field-browser-show-empty');
     var $fbResults = $('#wpstatic-field-browser-results');
+    var $fbCommon = $('#wpstatic-field-browser-common');
+    var $fbCommonResults = $('#wpstatic-field-browser-common-results');
     var fbFields = []; // full, unfiltered list from the last successful fetch
+
+    // The most frequently used fields, with clean, hand-picked marker
+    // names (rather than the generic auto-derived ones) - shown as a
+    // quick-access shortcut above the full, searchable list.
+    var FB_COMMON_FIELDS = [
+        {path: 'title->rendered', marker: '###title###'},
+        {path: 'content->rendered', marker: '###content###'},
+        {path: 'excerpt->rendered', marker: '###excerpt###'},
+        {path: 'slug', marker: '###slug###'},
+        {path: 'link', marker: '###permalink###'},
+        {path: 'date', marker: '###date###'}
+    ];
+
+    function fbBuildRowHtml(field, forcedMarker) {
+        var badge = field.is_array
+            ? '<span class="wpstatic-field-array-badge">' + i18n.fieldBrowserArrayBadge + '</span>'
+            : (field.is_linked ? '<span class="wpstatic-field-linked-badge">' + i18n.fieldBrowserLinkedBadge + '</span>' : '');
+        // A plain (unresolved) array field would silently produce the
+        // literal text "Array" if used directly in an injection rule
+        // (PHP's array-to-string conversion) - not clickable-to-insert,
+        // to prevent building a rule that looks fine but is broken.
+        var notInsertable = field.is_array && !field.is_linked;
+        var rowClass = 'wpstatic-field-row' + (notInsertable ? ' wpstatic-field-row-disabled' : '');
+
+        return '<div class="' + rowClass + '"'
+            + ' data-path="' + $('<div>').text(field.path).html() + '"'
+            + ' data-not-insertable="' + (notInsertable ? '1' : '') + '"'
+            + (forcedMarker ? ' data-marker="' + $('<div>').text(forcedMarker).html() + '"' : '')
+            + '>'
+            + '<code>' + $('<div>').text(field.path).html() + '</code>'
+            + '<span class="wpstatic-field-preview">' + $('<div>').text(field.preview).html() + '</span>'
+            + badge
+            + '</div>';
+    }
 
     function fbRenderFields(fields) {
         if (fields.length === 0) {
@@ -362,23 +398,33 @@ jQuery(function ($) {
 
         var html = '';
         fields.forEach(function (field) {
-            var badge = field.is_array
-                ? '<span class="wpstatic-field-array-badge">' + i18n.fieldBrowserArrayBadge + '</span>'
-                : (field.is_linked ? '<span class="wpstatic-field-linked-badge">' + i18n.fieldBrowserLinkedBadge + '</span>' : '');
-            // A plain (unresolved) array field would silently produce the
-            // literal text "Array" if used directly in an injection rule
-            // (PHP's array-to-string conversion) - not clickable-to-insert,
-            // to prevent building a rule that looks fine but is broken.
-            var notInsertable = field.is_array && !field.is_linked;
-            var rowClass = 'wpstatic-field-row' + (notInsertable ? ' wpstatic-field-row-disabled' : '');
-            html += '<div class="' + rowClass + '" data-path="' + $('<div>').text(field.path).html() + '" data-not-insertable="' + (notInsertable ? '1' : '') + '">'
-                + '<code>' + $('<div>').text(field.path).html() + '</code>'
-                + '<span class="wpstatic-field-preview">' + $('<div>').text(field.preview).html() + '</span>'
-                + badge
-                + '</div>';
+            html += fbBuildRowHtml(field, null);
         });
 
         $fbResults.html(html);
+    }
+
+    function fbRenderCommonFields() {
+        var byPath = {};
+        fbFields.forEach(function (field) {
+            byPath[field.path] = field;
+        });
+
+        var html = '';
+        FB_COMMON_FIELDS.forEach(function (common) {
+            var field = byPath[common.path];
+
+            if (field) {
+                html += fbBuildRowHtml(field, common.marker);
+            }
+        });
+
+        if (html === '') {
+            $fbCommon.hide();
+        } else {
+            $fbCommonResults.html(html);
+            $fbCommon.show();
+        }
     }
 
     function fbApplyFilter() {
@@ -428,6 +474,7 @@ jQuery(function ($) {
 
     function fbLoadFields(postId) {
         fbFields = [];
+        $fbCommon.hide();
         $fbResults.html('<p class="description">' + i18n.fieldBrowserLoadingFields + '</p>');
 
         ajaxPost('wpstatic_field_browser_fields', {post_id: postId}).done(function (response) {
@@ -437,6 +484,7 @@ jQuery(function ($) {
             }
 
             fbFields = (response.data && response.data.fields) || [];
+            fbRenderCommonFields();
             fbApplyFilter();
         }).fail(function () {
             $fbResults.html('<p style="color:#b32d2e;">' + i18n.errorRequestFailed + '</p>');
@@ -448,6 +496,7 @@ jQuery(function ($) {
         $fbSearch.val('');
         $fbShowEmpty.prop('checked', false);
         fbFields = [];
+        $fbCommon.hide();
         $fbResults.html('<p class="description">' + i18n.fieldBrowserSelectPrompt + '</p>');
         fbLoadPosts();
     });
@@ -470,6 +519,7 @@ jQuery(function ($) {
             fbLoadFields(postId);
         } else {
             fbFields = [];
+            $fbCommon.hide();
             $fbResults.html('<p class="description">' + i18n.fieldBrowserSelectPrompt + '</p>');
         }
     });
@@ -477,7 +527,7 @@ jQuery(function ($) {
     $fbSearch.on('input', fbApplyFilter);
     $fbShowEmpty.on('change', fbApplyFilter);
 
-    $fbResults.on('click', '.wpstatic-field-row', function () {
+    $fbResults.add($fbCommonResults).on('click', '.wpstatic-field-row', function () {
         var $row = $(this);
 
         if ($row.data('not-insertable')) {
@@ -490,7 +540,7 @@ jQuery(function ($) {
         }
 
         var path = $row.data('path');
-        var marker = '###' + String(path).replace(/->/g, '_').replace(/[^a-zA-Z0-9_]/g, '_') + '###';
+        var marker = $row.data('marker') || ('###' + String(path).replace(/->/g, '_').replace(/[^a-zA-Z0-9_]/g, '_') + '###');
         var $textarea = $('#data_injection_rules');
         var newLine = path + ' => ' + marker;
         var current = $textarea.val();

@@ -27,7 +27,7 @@
 
 #wpstatic-unsaved-notice {
     position: sticky;
-    top: 32px; /* Höhe der WP-Admin-Bar auf Desktop */
+    top: 32px; /* height of the WP admin bar on desktop */
     z-index: 100;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
@@ -160,4 +160,15 @@
     padding: 1px 6px;
     border-radius: 3px;
     align-self: center;
+}
+
+.wpstatic-field-browser-common {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    padding: 8px 10px;
+    margin-top: 10px;
+}
+
+.wpstatic-field-browser-common h4 {
+    margin-top: 0;
 }
