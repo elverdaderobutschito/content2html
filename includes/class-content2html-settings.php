@@ -59,7 +59,7 @@ class Content2HTML_Settings {
 
             'nav_active_class' => 'active',
             'date_format' => '',
-            'remove_wp_tags' => '',
+            'remove_class_prefixes' => '',
             'data_injection_rules' => '',
             'change_url_rules' => '',
             'tidy_html_rules' => '',
@@ -208,7 +208,7 @@ class Content2HTML_Settings {
             'target' => in_array($rawTarget, ['sftp', 'netlify'], true) ? $rawTarget : 'sftp',
             'post_types' => !empty($postTypes) ? $postTypes : ['post', 'page'],
             'date_format' => sanitize_text_field(wp_unslash($_POST['date_format'] ?? '')),
-            'remove_wp_tags' => !empty($_POST['remove_wp_tags']) ? 'on' : '',
+            'remove_class_prefixes' => sanitize_text_field(wp_unslash($_POST['remove_class_prefixes'] ?? '')),
             'data_injection_rules' => sanitize_textarea_field(wp_unslash($_POST['data_injection_rules'] ?? '')),
             'change_url_rules' => sanitize_textarea_field(wp_unslash($_POST['change_url_rules'] ?? '')),
             'tidy_html_rules' => sanitize_textarea_field(wp_unslash($_POST['tidy_html_rules'] ?? '')),
@@ -752,8 +752,11 @@ class Content2HTML_Settings {
                         <td><input type="text" id="date_format" name="date_format" value="<?php echo esc_attr($settings['date_format']); ?>" class="regular-text" placeholder="d.m.Y"></td>
                     </tr>
                     <tr>
-                        <th><label for="remove_wp_tags"><?php esc_html_e('Remove WP CSS classes', 'content2html'); ?></label></th>
-                        <td><label><input type="checkbox" id="remove_wp_tags" name="remove_wp_tags" <?php checked('on', $settings['remove_wp_tags']); ?>> <?php esc_html_e('active', 'content2html'); ?></label></td>
+                        <th><label for="remove_class_prefixes"><?php esc_html_e('Remove CSS class prefixes', 'content2html'); ?></label></th>
+                        <td>
+                            <input type="text" id="remove_class_prefixes" name="remove_class_prefixes" class="regular-text" placeholder="wp-, uagb-" value="<?php echo esc_attr($settings['remove_class_prefixes']); ?>">
+                            <p class="description"><?php esc_html_e('Comma-separated list of class-name prefixes to strip from every element (e.g. "wp-, uagb-" removes any class starting with either). Leave empty to keep all classes as-is.', 'content2html'); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><label for="data_injection_rules"><?php esc_html_e('Data injection rules', 'content2html'); ?></label></th>
